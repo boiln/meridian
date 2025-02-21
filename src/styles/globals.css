@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 220 15% 9%;
+        --foreground: 0 0% 98%;
+        --card: 220 15% 11%;
+        --card-foreground: 0 0% 98%;
+        --popover: 220 15% 11%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 220 30% 70%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 220 15% 13%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 220 15% 25%;
+        --muted-foreground: 220 15% 65%;
+        --accent: 220 30% 70%;
+        --accent-foreground: 220 15% 11%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 220 15% 20%;
+        --input: 220 15% 13%;
+        --ring: 220 30% 70%;
+        --radius: 0.5rem;
+        --font-size-compact: 11px;
+    }
+
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        background-attachment: fixed;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-track {
+        @apply bg-background/50;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply rounded-full bg-secondary hover:bg-secondary/80;
+    }
+
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    * {
+        scrollbar-width: auto;
+        scrollbar-color: hsl(var(--border)) transparent;
+    }
+}
+
+@layer base {
+    body::before {
+        display: none;
+    }
+}
+
+@layer utilities {
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+}
+
+::selection {
+    @apply bg-primary/20 text-primary;
+}
+
+::-moz-selection {
+    @apply bg-primary/20 text-primary;
+}
+
+html {
+    scroll-behavior: smooth;
+}

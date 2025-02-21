@@ -1,0 +1,23 @@
+:root[data-theme="light"] {
+    --background: 220 15% 94%;
+    --foreground: 220 25% 20%;
+    --card: 220 15% 96%;
+    --card-foreground: 220 25% 20%;
+    --popover: 220 15% 96%;
+    --popover-foreground: 220 25% 20%;
+    --primary: 220 30% 60%;
+    --primary-foreground: 220 15% 96%;
+    --secondary: 220 25% 92%;
+    --secondary-foreground: 220 25% 20%;
+    --muted: 220 25% 92%;
+    --muted-foreground: 220 25% 45%;
+    --accent: 220 30% 60%;
+    --accent-foreground: 220 15% 96%;
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 220 15% 96%;
+    --border: 220 25% 90%;
+    --input: 220 25% 90%;
+    --ring: 220 30% 60%;
+    --radius: 0.5rem;
+    --font-size-compact: 11px;
+}
