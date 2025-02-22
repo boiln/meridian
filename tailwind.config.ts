@@ -89,7 +89,7 @@ const config = {
                 },
                 highlight: {
                     "0%": { backgroundColor: "transparent" },
-                    "15%": { backgroundColor: "hsl(var(--accent) / 0.15)" },
+                    "15%": { backgroundColor: "hsl(var(--muted) / 0.15)" },
                     "100%": { backgroundColor: "transparent" },
                 },
             },
