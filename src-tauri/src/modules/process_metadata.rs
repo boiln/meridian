@@ -1,4 +1,8 @@
 use std::path::Path;
+use std::sync::Mutex;
+use std::collections::HashMap;
+use std::time::{Duration, Instant};
+use lazy_static::lazy_static;
 use windows::Win32::UI::WindowsAndMessaging::{
     HICON, DestroyIcon,
 };
@@ -19,6 +23,13 @@ use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use image::{ImageBuffer, Rgba};
 use crate::log_error;
 
+// Cache structure to store icons with timestamps
+lazy_static! {
+    static ref ICON_CACHE: Mutex<HashMap<String, (String, Instant)>> = Mutex::new(HashMap::new());
+}
+
+const ICON_CACHE_DURATION: Duration = Duration::from_secs(300); // 5 minutes cache duration
+
 #[derive(Debug, Clone)]
 pub struct ProcessMetadata {
     pub display_name: Option<String>,
@@ -26,6 +37,26 @@ pub struct ProcessMetadata {
 }
 
 pub fn get_process_metadata(exe_path: &str) -> ProcessMetadata {
+    // Early return for empty paths
+    if exe_path.is_empty() {
+        return ProcessMetadata {
+            display_name: None,
+            icon_base64: None,
+        };
+    }
+
+    // Check cache first
+    if let Ok(mut cache) = ICON_CACHE.lock() {
+        if let Some((cached_icon, timestamp)) = cache.get(exe_path) {
+            if timestamp.elapsed() < ICON_CACHE_DURATION {
+                return ProcessMetadata {
+                    display_name: None, // We'll still get the display name fresh
+                    icon_base64: Some(cached_icon.clone()),
+                };
+            }
+        }
+    }
+
     unsafe {
         if let Err(e) = CoInitializeEx(None, COINIT_MULTITHREADED) {
             log_error!("[Icon] Failed to initialize COM: {:?}", e);
@@ -99,8 +130,8 @@ pub fn get_process_metadata(exe_path: &str) -> ProcessMetadata {
         let mut hicon = HICON::default();
         let mut icon_obtained = false;
 
-        // get icon from shell api
-        if !icon_obtained {
+        // Try to get icon from shell API with retry
+        for _ in 0..3 {
             if SHGetFileInfoW(
                 PCWSTR(wide_path.as_ptr()),
                 FILE_FLAGS_AND_ATTRIBUTES(0),
@@ -111,12 +142,18 @@ pub fn get_process_metadata(exe_path: &str) -> ProcessMetadata {
                 if !file_info.hIcon.is_invalid() {
                     hicon = HICON(file_info.hIcon.0);
                     icon_obtained = true;
+                    break;
                 }
             }
+            std::thread::sleep(Duration::from_millis(10));
         }
 
         if icon_obtained && !hicon.is_invalid() {
             if let Some(icon_data) = extract_icon_to_base64(hicon) {
+                // Update cache
+                if let Ok(mut cache) = ICON_CACHE.lock() {
+                    cache.insert(exe_path.to_string(), (icon_data.clone(), Instant::now()));
+                }
                 metadata.icon_base64 = Some(icon_data);
             } else {
                 log_error!("[Icon] Failed to convert icon to base64 for: {}", exe_path);
@@ -124,6 +161,12 @@ pub fn get_process_metadata(exe_path: &str) -> ProcessMetadata {
             DestroyIcon(hicon);
         } else {
             log_error!("[Icon] All methods failed to get icon for: {}", exe_path);
+            // Try to get from cache even if current attempt failed
+            if let Ok(cache) = ICON_CACHE.lock() {
+                if let Some((cached_icon, _)) = cache.get(exe_path) {
+                    metadata.icon_base64 = Some(cached_icon.clone());
+                }
+            }
         }
     }
 

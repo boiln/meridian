@@ -22,3 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.cursor/rules/backend.mdc
+/.cursor

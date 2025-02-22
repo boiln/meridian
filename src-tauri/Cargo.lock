@@ -2390,6 +2390,7 @@ dependencies = [
  "futures",
  "get_if_addrs",
  "image",
+ "lazy_static",
  "log",
  "netstat2",
  "once_cell",

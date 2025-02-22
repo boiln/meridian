@@ -60,6 +60,7 @@ ctor = "0.2"
 pcap = "1.1.0"
 etherparse = "0.13.0"
 get_if_addrs = "0.5.3"
+lazy_static = "1.4.0"
 
 [features]
 custom-protocol = [ "tauri/custom-protocol" ]
