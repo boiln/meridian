@@ -28,7 +28,7 @@ lazy_static! {
     static ref ICON_CACHE: Mutex<HashMap<String, (String, Instant)>> = Mutex::new(HashMap::new());
 }
 
-const ICON_CACHE_DURATION: Duration = Duration::from_secs(300); // 5 minutes cache duration
+const ICON_CACHE_DURATION: Duration = Duration::from_secs(99999);
 
 #[derive(Debug, Clone)]
 pub struct ProcessMetadata {
