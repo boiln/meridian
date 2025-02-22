@@ -25,7 +25,7 @@ use crate::log_error;
 
 // Cache structure to store icons with timestamps
 lazy_static! {
-    static ref ICON_CACHE: Mutex<HashMap<String, (String, Instant)>> = Mutex::new(HashMap::new());
+    static ref ICON_CACHE: Mutex<HashMap<String, (String, Option<String>, Instant)>> = Mutex::new(HashMap::new());
 }
 
 const ICON_CACHE_DURATION: Duration = Duration::from_secs(99999);
@@ -46,11 +46,11 @@ pub fn get_process_metadata(exe_path: &str) -> ProcessMetadata {
     }
 
     // Check cache first
-    if let Ok(mut cache) = ICON_CACHE.lock() {
-        if let Some((cached_icon, timestamp)) = cache.get(exe_path) {
+    if let Ok(cache) = ICON_CACHE.lock() {
+        if let Some((cached_icon, cached_name, timestamp)) = cache.get(exe_path) {
             if timestamp.elapsed() < ICON_CACHE_DURATION {
                 return ProcessMetadata {
-                    display_name: None, // We'll still get the display name fresh
+                    display_name: cached_name.clone(),
                     icon_base64: Some(cached_icon.clone()),
                 };
             }
@@ -150,9 +150,9 @@ pub fn get_process_metadata(exe_path: &str) -> ProcessMetadata {
 
         if icon_obtained && !hicon.is_invalid() {
             if let Some(icon_data) = extract_icon_to_base64(hicon) {
-                // Update cache
+                // Update cache with both icon and display name
                 if let Ok(mut cache) = ICON_CACHE.lock() {
-                    cache.insert(exe_path.to_string(), (icon_data.clone(), Instant::now()));
+                    cache.insert(exe_path.to_string(), (icon_data.clone(), metadata.display_name.clone(), Instant::now()));
                 }
                 metadata.icon_base64 = Some(icon_data);
             } else {
@@ -163,8 +163,11 @@ pub fn get_process_metadata(exe_path: &str) -> ProcessMetadata {
             log_error!("[Icon] All methods failed to get icon for: {}", exe_path);
             // Try to get from cache even if current attempt failed
             if let Ok(cache) = ICON_CACHE.lock() {
-                if let Some((cached_icon, _)) = cache.get(exe_path) {
+                if let Some((cached_icon, cached_name, _)) = cache.get(exe_path) {
                     metadata.icon_base64 = Some(cached_icon.clone());
+                    if metadata.display_name.is_none() {
+                        metadata.display_name = cached_name.clone();
+                    }
                 }
             }
         }
