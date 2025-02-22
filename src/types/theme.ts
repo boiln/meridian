@@ -27,8 +27,8 @@ export const themes = [
     {
         id: "light",
         name: "Light",
-        color: "hsl(220 30% 60%)",
-        bgColor: "rgba(242, 244, 247, 0.35)",
+        color: "hsl(0 0% 90%)",
+        bgColor: "rgba(255, 255, 255, 0.35)",
     },
 ] as const;
 
