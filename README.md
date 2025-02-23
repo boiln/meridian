@@ -1,12 +1,11 @@
 # Meridian
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/yourusername/meridian/releases)
+[![Version](https://img.shields.io/badge/version-0.1.3-blue.svg)](https://github.com/yourusername/meridian/releases)
 [![Tauri 2.0](https://img.shields.io/badge/Tauri-2.0-blue)](https://tauri.app/)
 [![Windows Support](https://img.shields.io/badge/Windows-10%2F11-brightgreen)](https://www.microsoft.com/windows)
 
-![meridian_0.1.0](https://github.com/user-attachments/assets/ce9333a3-3437-429e-aa6c-329c7941a01a)
-
+![meridian_0.1.3](https://github.com/user-attachments/assets/ce9333a3-3437-429e-aa6c-329c7941a01a)
 
 ## Recommended IDE Setup
 
@@ -18,7 +17,7 @@
 
 Meridian is an open-source network manipulation tool built with Tauri 2.0, React, and TypeScript. It provides capabilities for analyzing and manipulating network traffic, primarily focused on studying network behavior in PC games.
 
-### Current Features (v0.1.0)
+### Current Features (v0.1.3)
 
 - Real-time network traffic monitoring
     - Download speed tracking
