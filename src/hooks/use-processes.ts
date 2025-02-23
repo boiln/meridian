@@ -68,32 +68,6 @@ const fetchProcesses = async (): Promise<ApplicationProcess[]> => {
             };
         });
 
-        console.log("Fetched processes:", {
-            total: validatedResult.length,
-            online: validatedResult.filter((p) => p.status === ProcessStatus.Online).length,
-            offline: validatedResult.filter((p) => p.status === ProcessStatus.Offline).length,
-            withActivity: validatedResult.filter(
-                (p) => p.network_usage.download.value > 0 || p.network_usage.upload.value > 0
-            ).length,
-        });
-
-        // Log processes with network activity
-        const activeProcesses = validatedResult.filter(
-            (p) => p.network_usage.download.value > 0 || p.network_usage.upload.value > 0
-        );
-        if (activeProcesses.length > 0) {
-            console.log(
-                "Processes with network activity:",
-                activeProcesses.map((p) => ({
-                    name: p.name,
-                    pid: p.pid,
-                    status: p.status,
-                    download: p.network_usage.download.value,
-                    upload: p.network_usage.upload.value,
-                }))
-            );
-        }
-
         // Process and validate network usage values
         const processedResult = validatedResult.map((process) => {
             // Preserve the original values and units

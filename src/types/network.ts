@@ -58,7 +58,7 @@ export const BYTES_PER_GB = BYTES_PER_MB * 1024;
 
 // Helper functions for unit conversion
 export const convertSpeed = (speed: NetworkSpeed, targetUnit: SpeedUnit): NetworkSpeed => {
-    let bytesPerSecond = 0; // Initialize with default
+    let bytesPerSecond = 0;
 
     // Convert to bytes first
     switch (speed.unit) {
@@ -91,4 +91,88 @@ export const convertSpeed = (speed: NetworkSpeed, targetUnit: SpeedUnit): Networ
         default:
             return { value: bytesPerSecond, unit: "B/s" };
     }
+};
+
+export interface NetworkManipulation {
+    enabled: boolean;
+    download: boolean;
+    upload: boolean;
+}
+
+export interface LagConfig extends NetworkManipulation {
+    timeMs: number; // Default: 500
+}
+
+export interface DropConfig extends NetworkManipulation {
+    chance: number; // Default: 60
+}
+
+export interface ThrottleConfig extends NetworkManipulation {
+    timeframeMs: number; // Default: 500
+    chance: number; // Default: 60
+}
+
+export interface OutOfOrderConfig extends NetworkManipulation {
+    chance: number; // Default: 60
+}
+
+export interface DuplicateConfig extends NetworkManipulation {
+    count: number; // Default: 2
+    chance: number; // Default: 60
+}
+
+export interface TamperConfig extends NetworkManipulation {
+    redoChecksum: boolean;
+    chance: number; // Default: 60
+}
+
+export interface ProcessNetworkConfig {
+    lag: LagConfig;
+    drop: DropConfig;
+    throttle: ThrottleConfig;
+    outOfOrder: OutOfOrderConfig;
+    duplicate: DuplicateConfig;
+    tamper: TamperConfig;
+}
+
+export const DEFAULT_NETWORK_CONFIG: ProcessNetworkConfig = {
+    lag: {
+        enabled: false,
+        download: false,
+        upload: false,
+        timeMs: 500,
+    },
+    drop: {
+        enabled: false,
+        download: false,
+        upload: false,
+        chance: 60,
+    },
+    throttle: {
+        enabled: false,
+        download: false,
+        upload: false,
+        timeframeMs: 500,
+        chance: 60,
+    },
+    outOfOrder: {
+        enabled: false,
+        download: false,
+        upload: false,
+        chance: 60,
+    },
+    duplicate: {
+        enabled: false,
+        download: false,
+        upload: false,
+        count: 2,
+        chance: 60,
+    },
+    tamper: {
+        enabled: false,
+        download: false,
+        upload: false,
+        redoChecksum: true,
+        chance: 60,
+    },
 };

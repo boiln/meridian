@@ -1,21 +1,24 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 import { ChevronRight, ArrowDown, ArrowUp } from "lucide-react";
 
-import { SpeedControl } from "@/components/speed-control";
+import { NetworkManipulation } from "@/components/network-controls";
 import { cn } from "@/lib/utils";
 import {
     ApplicationProcess,
-    NetworkSpeed,
     SpeedUnit,
     AppNetworkLimit,
     convertSpeed,
+    ProcessNetworkConfig,
+    DEFAULT_NETWORK_CONFIG,
 } from "@/types/network";
 
 interface ProcessItemProps {
     process: ApplicationProcess;
     limit?: AppNetworkLimit;
     onLimitChange?: (limit: AppNetworkLimit) => void;
+    onNetworkConfigChange?: (processId: number, config: ProcessNetworkConfig) => void;
+    networkConfig?: ProcessNetworkConfig;
     speedUnit: SpeedUnit;
     allProcesses: ApplicationProcess[];
     depth?: number;
@@ -26,6 +29,8 @@ export function ProcessItem({
     process,
     limit,
     onLimitChange,
+    onNetworkConfigChange,
+    networkConfig = DEFAULT_NETWORK_CONFIG,
     speedUnit,
     allProcesses,
     depth = 0,
@@ -37,7 +42,30 @@ export function ProcessItem({
         download: process.network_usage.download.value,
         upload: process.network_usage.upload.value,
         lastUpdate: Date.now(),
+        lastLogTime: Date.now(),
     });
+
+    // Debounced logging
+    useEffect(() => {
+        const now = Date.now();
+        if (now - prevValuesRef.current.lastLogTime > 1000) {
+            // Only log once per second
+            console.log("ProcessItem state:", {
+                processId: process.id,
+                processName: process.name,
+                limit: {
+                    enabled: limit?.enabled,
+                    downloadValue: limit?.download.value,
+                    uploadValue: limit?.upload.value,
+                },
+                networkConfig: {
+                    enabled: networkConfig.lag.enabled,
+                    lag: networkConfig.lag.timeMs,
+                },
+            });
+            prevValuesRef.current.lastLogTime = now;
+        }
+    }, [process.id, limit, networkConfig]);
 
     const hasActiveTraffic =
         (process.network_usage?.download?.value || 0) > 0 ||
@@ -72,15 +100,20 @@ export function ProcessItem({
             download: currentDownload,
             upload: currentUpload,
             lastUpdate: currentTime,
+            lastLogTime: prevValuesRef.current.lastLogTime,
         };
     }, [process.network_usage.download.value, process.network_usage.upload.value]);
 
-    const currentLimit = limit || {
-        processId: process.id,
-        enabled: false,
-        download: { value: 0, unit: speedUnit },
-        upload: { value: 0, unit: speedUnit },
-    };
+    const handleNetworkConfigChange = useCallback(
+        (config: ProcessNetworkConfig) => {
+            console.log("Network Config Change:", {
+                processId: process.id,
+                config,
+            });
+            onNetworkConfigChange?.(process.id, config);
+        },
+        [process.id, onNetworkConfigChange]
+    );
 
     const downloadSpeed = convertSpeed(
         { value: process.network_usage.download.value, unit: process.network_usage.download.unit },
@@ -92,19 +125,26 @@ export function ProcessItem({
         speedUnit
     );
 
-    const handleSpeedChange = (type: "download" | "upload", speed: NetworkSpeed) => {
-        if (!onLimitChange) return;
-        onLimitChange({
-            ...currentLimit,
-            [type]: speed,
-        });
-    };
+    // Remove debug logging
+    useEffect(() => {
+        if (!limit) return;
+    }, [process.id, limit]);
+
+    useEffect(() => {}, [networkConfig]);
 
     const parentProcess = process.parent_pid
         ? allProcesses.find((p) => p.pid === process.parent_pid)
         : null;
 
     const childProcesses = allProcesses.filter((p) => p.parent_pid === process.pid);
+
+    const handleExpandClick = (e: React.MouseEvent) => {
+        setIsExpanded(!isExpanded);
+    };
+
+    const handleControlsClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+    };
 
     return (
         <>
@@ -114,7 +154,7 @@ export function ProcessItem({
                     isExpanded && "bg-accent/20",
                     isFlashing && "animate-highlight"
                 )}
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={handleExpandClick}
             >
                 <td className="px-2">
                     <div className="flex min-w-[300px] items-center gap-1">
@@ -180,6 +220,8 @@ export function ProcessItem({
                             process={childProcess}
                             limit={limit}
                             onLimitChange={onLimitChange}
+                            onNetworkConfigChange={onNetworkConfigChange}
+                            networkConfig={networkConfig}
                             speedUnit={speedUnit}
                             allProcesses={allProcesses}
                             depth={depth + 1}
@@ -189,34 +231,34 @@ export function ProcessItem({
                     {/* Process details */}
                     <tr className="border-b border-border/20 bg-accent/[0.02]">
                         <td colSpan={3} className="px-4 py-3">
-                            <div className="ml-6 space-y-4">
-                                <div className="flex space-x-4">
-                                    <SpeedControl
-                                        label="Download"
-                                        value={currentLimit.download}
-                                        onChange={(speed: NetworkSpeed) =>
-                                            handleSpeedChange("download", speed)
-                                        }
-                                    />
-                                    <SpeedControl
-                                        label="Upload"
-                                        value={currentLimit.upload}
-                                        onChange={(speed: NetworkSpeed) =>
-                                            handleSpeedChange("upload", speed)
-                                        }
-                                    />
+                            <div className="ml-6 space-y-4" onClick={handleControlsClick}>
+                                <div className="rounded-lg border border-border/50 bg-card p-4">
+                                    <h3 className="mb-3 text-sm font-medium">Network Controls</h3>
+                                    <div className="space-y-4">
+                                        <NetworkManipulation
+                                            config={networkConfig}
+                                            onChange={handleNetworkConfigChange}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="text-xs text-muted-foreground">
-                                    <div>{process.path}</div>
-                                    <div>PID: {process.pid}</div>
-                                    {parentProcess && (
-                                        <div>
-                                            Parent PID: {process.parent_pid} ({parentProcess.name})
-                                        </div>
-                                    )}
-                                    {childProcesses.length > 0 && (
-                                        <div>Child Processes: {childProcesses.length}</div>
-                                    )}
+
+                                <div className="rounded-lg border border-border/50 bg-card p-4">
+                                    <h3 className="mb-3 text-sm font-medium">
+                                        Process Information
+                                    </h3>
+                                    <div className="text-xs text-muted-foreground">
+                                        <div>{process.path}</div>
+                                        <div>PID: {process.pid}</div>
+                                        {parentProcess && (
+                                            <div>
+                                                Parent PID: {process.parent_pid} (
+                                                {parentProcess.name})
+                                            </div>
+                                        )}
+                                        {childProcesses.length > 0 && (
+                                            <div>Child Processes: {childProcesses.length}</div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </td>
