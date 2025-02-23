@@ -5,7 +5,8 @@
 [![Tauri 2.0](https://img.shields.io/badge/Tauri-2.0-blue)](https://tauri.app/)
 [![Windows Support](https://img.shields.io/badge/Windows-10%2F11-brightgreen)](https://www.microsoft.com/windows)
 
-![meridian_0.1.3](https://github.com/user-attachments/assets/ce9333a3-3437-429e-aa6c-329c7941a01a)
+![meridian_0.1.3](https://github.com/user-attachments/assets/169e4dae-aff5-4aad-89b5-8d6b19d3dfb8)
+
 
 ## Recommended IDE Setup
 
